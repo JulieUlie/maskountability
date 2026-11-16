@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Published claims</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Each entry is one specific public claim by a company, with the evidence reviewed and the verdict.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Maskountability">
+<meta property="og:title" content="Company claims, checked against the evidence">
+<meta property="og:description" content="Each entry is one specific public claim by a company, with the evidence reviewed and the verdict.">
+<meta property="og:url" content="https://maskountability.julietous.workers.dev/">
+<meta property="og:image" content="https://maskountability.julietous.workers.dev/og-20261116.png">
+<meta property="og:image:secure_url" content="https://maskountability.julietous.workers.dev/og-20261116.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Maskountability: company claims checked against the evidence">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Company claims, checked against the evidence">
+<meta name="twitter:description" content="Each entry is one specific public claim by a company, with the evidence reviewed and the verdict.">
+<meta name="twitter:image" content="https://maskountability.julietous.workers.dev/og-20261116.png">
+<style>
+:root {
+  --bg: #e4e2d9; --fg: #1d1d1b; --muted: #6a6a63; --card: #f2f1ec; --line: #cbc9bf; --accent: #3b4a6b;
+  --ok: #2d6a3e; --ok-bg: #e7f2ea; --no: #9a2b2b; --no-bg: #f6e6e6; --unk: #6b5a14; --unk-bg: #f3efd9;
+  --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+    --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+  --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; overflow-wrap: anywhere; }
+/* Same header on every page: brand left, the three pages right; it wraps under the brand on phones. */
+header.site { border-bottom: 1px solid var(--line); background: var(--card); }
+header.site .inner { max-width: 880px; margin: 0 auto; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 24px; }
+header.site .brand { font-weight: 700; letter-spacing: .02em; color: var(--fg); text-decoration: none; padding: 6px 0; }
+header.site nav { display: flex; flex-wrap: wrap; gap: 0 18px; }
+header.site nav a { color: var(--accent); font-weight: 600; text-decoration: none; padding: 6px 0; }
+header.site a:hover { text-decoration: underline; }
+header.site nav a[aria-current="page"] { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .35em; }
+main { max-width: 880px; margin: 0 auto; padding: 32px 16px 56px; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); line-height: 1.2; margin: 0 0 8px; }
+p.lede { color: var(--muted); margin: 0 0 28px; max-width: 62ch; }
+.controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 24px; }
+.controls input, .controls select {
+  font: inherit; padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); color: var(--fg); min-width: 0; box-shadow: var(--shadow);
+}
+.controls input:focus, .controls select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.count { color: var(--muted); font-size: .9rem; margin: 0 0 12px; }
+.grid { display: grid; gap: 14px; }
+.case {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  transition: border-color .15s ease, transform .15s ease;
+}
+.case:hover { border-color: var(--accent); transform: translateY(-1px); }
+.case a { display: block; padding: 18px 20px; color: inherit; text-decoration: none; }
+.case h2 { font-size: 1.1rem; margin: 0 0 6px; }
+.claim { color: var(--fg); margin: 0 0 12px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; color: var(--muted); font-size: .88rem; }
+.pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: .82rem; }
+.pill.supported { color: var(--ok); background: var(--ok-bg); }
+.pill.not_supported { color: var(--no); background: var(--no-bg); }
+.pill.insufficient_evidence { color: var(--unk); background: var(--unk-bg); }
+.guide { display: flex; gap: 18px; align-items: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin: 0 0 28px; box-shadow: var(--shadow); }
+.guide .mascot { width: 84px; height: 84px; flex: 0 0 auto; }
+.guide strong { display: block; margin-bottom: 4px; }
+.guide ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: .95rem; }
+.guide li { margin-bottom: 4px; }
+@media (max-width: 560px) { .guide { flex-direction: column; } }
+.empty { text-align: center; padding: 48px 20px; background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
+.empty strong { display: block; color: var(--fg); font-size: 1.1rem; margin-bottom: 6px; }
+.error { color: var(--no); }
+footer { max-width: 880px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: .85rem; }
+@media (max-width: 560px) {
+  .controls { grid-template-columns: 1fr; }
+  main { padding-top: 24px; }
+}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="inner">
+    <a class="brand" href="index.html">Maskountability</a>
+    <nav aria-label="Main"><a href="index.html" aria-current="page">Published claims</a><a href="submit.html">Send a claim</a><a href="help.html">How to use this site</a></nav>
+  </div>
+</header>
+<main>
+  <h1>Company claims, checked against the evidence</h1>
+  <p class="lede">Each entry is one specific public claim by a company, with the evidence we reviewed and the verdict. Verdicts describe the evidence, not the character of the company. Records are reviewed before they are published, and changes are logged.</p>
+  <aside class="guide" aria-label="How this site works">
+    <svg class="mascot" viewBox="0 0 96 96" role="img" aria-label="Theatre mask: the public face on one side, the checked record on the other">
+      <circle cx="48" cy="48" r="46" fill="var(--line)"/>
+      <!-- left half: the public face (polished, smiling) -->
+      <path d="M48 16 C34 16 22 22 22 40 C22 62 34 80 48 80 Z" fill="var(--card)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M32 38 Q37 34 42 38" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M30 54 Q38 66 46 58" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M34 28 Q40 24 46 26" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+      <!-- right half: the record (checked, neutral) -->
+      <path d="M48 16 C62 16 74 22 74 40 C74 62 62 80 48 80 Z" fill="var(--accent)" fill-opacity=".15" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M56 38 L60 42 L67 34" fill="none" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="56" y1="56" x2="66" y2="56" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="56" y1="63" x2="64" y2="63" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- centre seam -->
+      <line x1="48" y1="16" x2="48" y2="80" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"/>
+    </svg>
+    <div>
+      <strong>How to read a record</strong>
+      <ol>
+        <li>Each post is archived, so the claim can't quietly change.</li>
+        <li>The evidence is listed, including what it can't prove.</li>
+        <li>A verdict says whether the evidence supports the claim. It doesn't judge the company's character.</li>
+        <li>Records are reviewed before they are published, and each change is logged.</li>
+      </ol>
+    </div>
+  </aside>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search by company or claim" aria-label="Search">
+    <select id="verdict" aria-label="Filter by verdict">
+      <option value="">All verdicts</option>
+      <option value="supported">Supported</option>
+      <option value="not_supported">Not supported</option>
+      <option value="insufficient_evidence">Insufficient evidence</option>
+    </select>
+  </div>
+  <p class="count" id="count" aria-live="polite"></p>
+  <div id="list" class="grid" aria-live="polite"></div>
+</main>
+<footer>Records are versioned. Corrections and withdrawals are shown in each record's history.</footer>
+<script>
+const LABELS = { supported: "Supported", not_supported: "Not supported", insufficient_evidence: "Insufficient evidence" };
+const PUBLIC_STATUSES = ["published", "corrected"];
+let cases = [];
+
+function el(tag, props, children) {
+  const node = document.createElement(tag);
+  if (props) Object.assign(node, props);
+  for (const c of children || []) node.append(c);
+  return node;
+}
+
+function render() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const v = document.getElementById("verdict").value;
+  const list = document.getElementById("list");
+  const count = document.getElementById("count");
+  list.replaceChildren();
+  const shown = cases.filter(c =>
+    (!v || c.verdict.result === v) &&
+    (!q || (c.subject.name + " " + c.claim.text).toLowerCase().includes(q))
+  );
+  // Search and filter only make sense once something is published
+  document.querySelector(".controls").hidden = !cases.length;
+  if (!cases.length) {
+    count.textContent = "";
+    list.append(el("div", { className: "empty" }, [
+      el("strong", { textContent: "No published claims yet" }),
+      document.createTextNode("Reviewed cases appear here once the response window has closed.")
+    ]));
+    return;
+  }
+  count.textContent = shown.length + (shown.length === 1 ? " claim" : " claims");
+  if (!shown.length) {
+    list.append(el("div", { className: "empty" }, [
+      el("strong", { textContent: "No matches" }),
+      document.createTextNode("Try a different search or verdict filter.")
+    ]));
+    return;
+  }
+  for (const c of shown) {
+    list.append(el("article", { className: "case" }, [
+      el("a", { href: "case.html?id=" + encodeURIComponent(c.id) }, [
+        el("h2", { textContent: c.subject.name }),
+        el("p", { className: "claim", textContent: c.claim.text }),
+        el("div", { className: "row" }, [
+          el("span", { className: "pill " + c.verdict.result, textContent: LABELS[c.verdict.result] || c.verdict.result }),
+          el("span", { textContent: "Decided " + c.verdict.decided })
+        ])
+      ])
+    ]));
+  }
+}
+
+async function load() {
+  try {
+    const index = await fetch("cases/index.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    const records = await Promise.all(index.map(id =>
+      fetch("cases/" + encodeURIComponent(id) + ".json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    ));
+    cases = records.filter(c => PUBLIC_STATUSES.includes(c.status));
+    render();
+  } catch (e) {
+    document.getElementById("list").replaceChildren(el("p", { className: "error", textContent: "Could not load the case list." }));
+  }
+}
+
+// Theme: press L (outside text fields) to switch light/dark. Choice is stored per browser; storage may be unavailable.
+const THEME_KEY = "maskountability-theme";
+function currentTheme() {
+  const set = document.documentElement.getAttribute("data-theme");
+  if (set) return set;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function applyTheme(t) { document.documentElement.setAttribute("data-theme", t); }
+try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") applyTheme(saved); } catch (e) {}
+document.addEventListener("keydown", e => {
+  // e.key can be missing (Chrome autofill sends keydown events without one)
+  if (String(e.key || "").toLowerCase() !== "l" || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target && e.target.tagName) || "";
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(tag) || (e.target && e.target.isContentEditable)) return;
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (err) {}
+});
+
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("verdict").addEventListener("change", render);
+load();
+</script>
+</body>
+</html>

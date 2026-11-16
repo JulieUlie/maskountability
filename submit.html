@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Send a claim · Maskountability</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #e4e2d9; --fg: #1d1d1b; --muted: #55554e; --card: #f2f1ec; --line: #cbc9bf; --accent: #3b4a6b;
+  --ok: #2d6a3e; --ok-bg: #e7f2ea; --no: #9a2b2b; --no-bg: #f6e6e6;
+  --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 18px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #262624; --fg: #ecebe6; --muted: #b5b4ab; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+    --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #262624; --fg: #ecebe6; --muted: #b5b4ab; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+  --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --shadow: none;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; overflow-wrap: anywhere; }
+/* Same header on every page: brand left, the three pages right; it wraps under the brand on phones. */
+header.site { border-bottom: 1px solid var(--line); background: var(--card); }
+header.site .inner { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 24px; }
+header.site .brand { font-weight: 700; letter-spacing: .02em; color: var(--fg); text-decoration: none; padding: 6px 0; }
+header.site nav { display: flex; flex-wrap: wrap; gap: 0 18px; }
+header.site nav a { color: var(--accent); font-weight: 600; text-decoration: none; padding: 6px 0; }
+header.site a:hover { text-decoration: underline; }
+header.site nav a[aria-current="page"] { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .35em; }
+main { max-width: 760px; margin: 0 auto; padding: clamp(24px, 5vw, 44px) 16px 64px; }
+h1 { font-size: clamp(1.7rem, 5vw, 2.3rem); line-height: 1.15; margin: 0 0 12px; }
+h2 { font-size: 1.15rem; margin: 0 0 10px; }
+p { margin: 0 0 14px; }
+.lede { color: var(--muted); font-size: 1.05rem; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: clamp(18px, 4vw, 28px); box-shadow: var(--shadow); margin-bottom: 20px; }
+.rules { color: var(--muted); padding-left: 20px; margin: 0; }
+.rules li { margin-bottom: 8px; }
+form { display: grid; gap: 20px; }
+label { display: grid; gap: 6px; font-weight: 600; }
+label small { font-weight: 400; color: var(--muted); }
+input, textarea {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; width: 100%; min-width: 0; max-width: 100%;
+}
+textarea { min-height: 120px; resize: vertical; }
+input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.check { display: flex; gap: 12px; align-items: flex-start; font-weight: 400; }
+.check input { width: 22px; height: 22px; margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--accent); }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+button {
+  font: inherit; font-weight: 700; color: var(--card); background: var(--accent); border: 0; border-radius: 10px;
+  padding: 14px 22px; cursor: pointer; min-height: 48px; width: 100%;
+}
+button:disabled { opacity: .6; cursor: progress; }
+button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+#status { min-height: 1.6em; font-weight: 600; margin: 0; }
+#status.ok { color: var(--ok); }
+#status.err { color: var(--no); }
+.links a { color: var(--accent); font-weight: 600; }
+footer { max-width: 760px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: .9rem; }
+@media (min-width: 560px) { button { width: auto; } }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="inner">
+    <a class="brand" href="index.html">Maskountability</a>
+    <nav aria-label="Main"><a href="index.html">Published claims</a><a href="submit.html" aria-current="page">Send a claim</a><a href="help.html">How to use this site</a></nav>
+  </div>
+</header>
+
+<main>
+  <h1>Send a claim</h1>
+  <p class="lede">Tell us about a specific public claim a company has made, and the evidence you have for or against it. Every submission is read by a person before anything is published. Submissions are not published automatically.</p>
+
+  <section class="card" aria-labelledby="rules-title">
+    <h2 id="rules-title">Before you send</h2>
+    <ul class="rules">
+      <li><strong>Companies and brands only.</strong> Don't send claims about private individuals, and remove personal details such as home addresses, phone numbers, or family information from your evidence.</li>
+      <li><strong>Quote the claim exactly</strong> and link to the original post if you can.</li>
+      <li><strong>Describe evidence, not motives.</strong> Say what the evidence shows and what it can't prove.</li>
+      <li><strong>Only send what you're comfortable being shared with the company</strong> if it's reviewed.</li>
+    </ul>
+  </section>
+
+  <form id="claim-form" class="card" novalidate>
+    <label>
+      Company or brand name
+      <input name="company" required maxlength="120" autocomplete="organization" placeholder="e.g. Northwind Outdoor Supplies">
+    </label>
+    <label>
+      The public claim
+      <textarea name="claim" required maxlength="1000" placeholder="Quote the exact wording, e.g. “Based in [country] and guiding trips here year-round.”"></textarea>
+    </label>
+    <label>
+      Link to the post or page <small>(optional, must start with https:// or http://)</small>
+      <input name="source_url" type="url" maxlength="500" inputmode="url" placeholder="https://">
+    </label>
+    <label>
+      Evidence and sources <small>(optional: dates, registry or licence records, archived copies)</small>
+      <textarea name="evidence" maxlength="2000" placeholder="What you checked, where it came from, and when."></textarea>
+    </label>
+    <label>
+      Your contact <small>(optional: only if you want us to be able to reply)</small>
+      <input name="contact" maxlength="200" autocomplete="email" placeholder="Email address">
+    </label>
+    <label class="check">
+      <input name="consent" type="checkbox" required>
+      <span>I confirm the information is true to the best of my knowledge, it doesn't concern private individuals, and I agree it can be reviewed before any publication.</span>
+    </label>
+
+    <!-- Honeypot: leave empty -->
+    <div class="hp" aria-hidden="true">
+      <label>Leave this field empty <input name="website" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <div>
+      <button type="submit" id="submit-btn">Send claim</button>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </form>
+
+  <section class="card links" aria-labelledby="other-title">
+    <h2 id="other-title">Other places to report</h2>
+    <p>Some issues belong with an official body. You can report them directly:</p>
+    <ul class="rules">
+      <li>Misleading advertising, including undisclosed influencer posts: <a href="https://www.jep.be/" rel="noopener">Jury voor Ethische Praktijken inzake Reclame (JEP)</a></li>
+      <li>Other consumer and business practices: <a href="https://economie.fgov.be/" rel="noopener">FOD Economie</a></li>
+      <li>Company registration details: <a href="https://kbopub.economie.fgov.be/kbopub/zoeknummerform.html" rel="noopener">KBO public search</a></li>
+      <li>Personal data concerns: <a href="https://www.gegevensbeschermingsautoriteit.be/" rel="noopener">Gegevensbeschermingsautoriteit</a></li>
+    </ul>
+  </section>
+</main>
+
+<footer>Submissions are stored privately and reviewed by a person. Nothing is published automatically.</footer>
+
+<script>
+// Theme: press L (outside text fields) to switch light/dark. Same stored choice as the other pages.
+const THEME_KEY = "maskountability-theme";
+function currentTheme() {
+  const set = document.documentElement.getAttribute("data-theme");
+  if (set) return set;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function applyTheme(t) { document.documentElement.setAttribute("data-theme", t); }
+try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") applyTheme(saved); } catch (e) {}
+document.addEventListener("keydown", e => {
+  // e.key can be missing (Chrome autofill sends keydown events without one)
+  if (String(e.key || "").toLowerCase() !== "l" || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target && e.target.tagName) || "";
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(tag) || (e.target && e.target.isContentEditable)) return;
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (err) {}
+});
+
+// Submission
+const form = document.getElementById("claim-form");
+const statusEl = document.getElementById("status");
+const btn = document.getElementById("submit-btn");
+
+function setStatus(text, kind) {
+  statusEl.textContent = text;
+  statusEl.className = kind || "";
+}
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const fd = new FormData(form);
+  const payload = {
+    company: fd.get("company") || "",
+    claim: fd.get("claim") || "",
+    source_url: fd.get("source_url") || "",
+    evidence: fd.get("evidence") || "",
+    contact: fd.get("contact") || "",
+    website: fd.get("website") || "",
+    consent: fd.get("consent") === "on"
+  };
+  btn.disabled = true;
+  setStatus("Sending…");
+  try {
+    const res = await fetch("/api/submit", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) {
+      form.reset();
+      setStatus("Thank you. Your claim has been received and will be reviewed before anything is published.", "ok");
+    } else {
+      setStatus(data.error || "Something went wrong. Please try again later.", "err");
+    }
+  } catch (err) {
+    setStatus("Could not reach the server. Check your connection and try again.", "err");
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

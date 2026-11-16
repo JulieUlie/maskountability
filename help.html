@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to use this site</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #e4e2d9; --fg: #1d1d1b; --muted: #5f5f58; --card: #f2f1ec; --line: #cbc9bf; --accent: #3b4a6b;
+  --ok: #2d6a3e; --ok-bg: #e7f2ea; --no: #9a2b2b; --no-bg: #f6e6e6; --unk: #6b5a14; --unk-bg: #f3efd9;
+  --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+    --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+  --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19; --shadow: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+/* Same header on every page: brand left, the three pages right; it wraps under the brand on phones. */
+header.site { border-bottom: 1px solid var(--line); background: var(--card); }
+header.site .inner { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 24px; }
+header.site .brand { font-weight: 700; letter-spacing: .02em; color: var(--fg); text-decoration: none; padding: 6px 0; }
+header.site nav { display: flex; flex-wrap: wrap; gap: 0 18px; }
+header.site nav a { color: var(--accent); font-weight: 600; text-decoration: none; padding: 6px 0; }
+header.site a:hover { text-decoration: underline; }
+header.site nav a[aria-current="page"] { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .35em; }
+main { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: clamp(1.7rem, 4.5vw, 2.4rem); line-height: 1.15; margin: 0 0 10px; }
+h2 { font-size: clamp(1.25rem, 3vw, 1.5rem); margin: 44px 0 12px; }
+h3 { font-size: 1.05rem; margin: 0 0 6px; }
+p.lede { color: var(--muted); font-size: 1.08rem; max-width: 62ch; margin: 0 0 8px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.card p, .card li { color: var(--muted); }
+/* Step flow: cards in order, joined by arrows. Row on wide screens, column with down arrows on phones. */
+.flow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 30px; align-items: stretch; }
+.flow .card { position: relative; height: 100%; }
+.flow .card:not(:last-child)::after {
+  content: "→"; position: absolute; top: 50%; right: -23px; transform: translateY(-50%);
+  width: 22px; text-align: center; font-size: 1.4rem; font-weight: 700; color: var(--accent); line-height: 1; z-index: 1;
+}
+@media (max-width: 900px) {
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 36px; }
+  .flow .card:nth-child(2)::after { content: "↓"; top: auto; bottom: -30px; right: auto; left: 22px; transform: none; }
+  .flow .card:nth-child(3)::after { content: "→"; }
+  .flow .card:nth-child(4)::after { content: none; }
+}
+@media (max-width: 560px) {
+  .flow { grid-template-columns: minmax(0, 1fr); row-gap: 34px; }
+  .flow .card:nth-child(1)::after, .flow .card:nth-child(2)::after, .flow .card:nth-child(3)::after { content: "↓"; top: auto; bottom: -30px; right: auto; left: 50%; transform: translateX(-50%); }
+  .flow .card:last-child::after { content: none; }
+}
+.card ol, .card ul { padding-left: 20px; margin: 8px 0 0; }
+.card li { margin-bottom: 6px; }
+.step { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--card); font-weight: 700; font-size: .9rem; margin-bottom: 8px; }
+.pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-weight: 700; font-size: .85rem; margin-right: 6px; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); }
+.pill.no { color: var(--no); background: var(--no-bg); }
+.pill.unk { color: var(--unk); background: var(--unk-bg); }
+kbd { font: 600 .9rem ui-monospace, Consolas, monospace; background: var(--card); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 6px; padding: 2px 8px; color: var(--fg); }
+.notice { border-left: 4px solid var(--accent); background: var(--card); border-radius: 8px; padding: 14px 18px; margin-top: 16px; color: var(--muted); }
+.notice strong { color: var(--fg); }
+.faq details { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 10px; }
+.faq summary { cursor: pointer; font-weight: 700; }
+.faq details p { color: var(--muted); margin: 10px 0 0; }
+a.inline { color: var(--accent); }
+footer { max-width: 960px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="inner">
+    <a class="brand" href="index.html">Maskountability</a>
+    <nav aria-label="Main"><a href="index.html">Published claims</a><a href="submit.html">Send a claim</a><a href="help.html" aria-current="page">How to use this site</a></nav>
+  </div>
+</header>
+
+<main>
+  <h1>How to use this site</h1>
+  <p class="lede">This site publishes specific public claims by companies, with the evidence we reviewed and a verdict. This page explains how to read a record, what happens when a company is reviewed, and what you can do if you have information.</p>
+
+  <h2>1. Read a record</h2>
+  <div class="grid flow" aria-label="Steps to read a record, in order">
+    <div class="card">
+      <span class="step">1</span>
+      <h3>Start with the claim</h3>
+      <p>Each record quotes the exact wording of a public claim and links to the original post. The post is also archived with a timestamp, so the claim can't quietly change.</p>
+    </div>
+    <div class="card">
+      <span class="step">2</span>
+      <h3>Check the evidence</h3>
+      <p>Evidence is listed one item at a time. Each item says whether it supports the claim, contradicts it, or is neutral, and how it was obtained. The "Limits" line says what the item can't prove.</p>
+    </div>
+    <div class="card">
+      <span class="step">3</span>
+      <h3>Read the verdict</h3>
+      <p>The verdict describes whether the evidence supports the claim. It does not judge the company's character or intent.</p>
+      <p style="margin-top:10px">
+        <span class="pill ok">Supported</span>
+        <span class="pill no">Not supported</span>
+        <span class="pill unk">Insufficient evidence</span>
+      </p>
+    </div>
+    <div class="card">
+      <span class="step">4</span>
+      <h3>Check the status</h3>
+      <p>Each record shows its status. Only reviewed records are published, and the history shows every change.</p>
+    </div>
+  </div>
+
+  <h2>2. Search and filter</h2>
+  <div class="card">
+    <ul>
+      <li>On the <a class="inline" href="index.html">list page</a>, type a company name or words from a claim into the search box.</li>
+      <li>Use the verdict menu to show only supported, not supported, or insufficient-evidence records.</li>
+      <li>Press <kbd>L</kbd> anywhere outside a text box to switch between light and dark mode. Your choice is remembered in this browser.</li>
+    </ul>
+  </div>
+
+  <h2>3. Check the history</h2>
+  <div class="card">
+    <p>Every record ends with a History list. It shows when the claim was archived, when the verdict was drafted, when a response arrived, and any correction. If a record changes, the change is visible here.</p>
+  </div>
+
+  <h2>4. If you have information about a claim</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Send evidence, not accusations</h3>
+      <p>Useful information includes:</p>
+      <ul>
+        <li>A link to the original post, and the date you saw it</li>
+        <li>A screenshot or saved copy, with its date</li>
+        <li>Registry, licence, or official records</li>
+        <li>Reports from a regulator, court, or journalist, with a link</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Keep personal details out</h3>
+      <p>Don't send information about private people, such as home addresses, phone numbers, or family details. Records cover companies and public-facing claims only.</p>
+    </div>
+    <div class="card">
+      <h3>For advertising complaints</h3>
+      <p>Misleading advertising, including influencer posts that don't disclose sponsorship, can also be reported to the Jury voor Ethische Praktijken inzake Reclame (JEP) in Belgium, or to the FOD Economie for other issues.</p>
+    </div>
+  </div>
+  <div class="notice">
+    <strong>Anyone can send a claim.</strong> Use the <a class="inline" href="submit.html">Send a claim form</a>. Submissions are read by a person and are never published automatically. Records appear only after review. Official bodies for advertising, consumer, registry, and data-protection issues are listed on that page too.
+  </div>
+
+  <h2>5. If you are a company named on this site</h2>
+  <div class="card">
+    <p>Companies are notified about records through an internal procedure. Responses are handled through that procedure and are not published on this site. When a record is corrected or withdrawn, the change appears in its History list.</p>
+  </div>
+
+  <h2>Questions</h2>
+  <div class="faq">
+    <details>
+      <summary>Does a "not supported" verdict mean the company is lying?</summary>
+      <p>No. It means the evidence we reviewed doesn't support the specific claim. Intent isn't assessed, and the record lists what the evidence cannot prove.</p>
+    </details>
+    <details>
+      <summary>Why is a record missing?</summary>
+      <p>Only reviewed records are published. A record may be in review, in its response window, or withdrawn after a correction.</p>
+    </details>
+    <details>
+      <summary>Can I search for a person?</summary>
+      <p>No. Search covers company names and claim text only. Individuals appear only as the author of a specific post, where that matters to a claim.</p>
+    </details>
+    <details>
+      <summary>Is my data stored?</summary>
+      <p>The public site doesn't collect personal data. Nothing is submitted through this page.</p>
+    </details>
+  </div>
+</main>
+
+<footer>Records are versioned. Corrections and withdrawals appear in each record's history.</footer>
+
+<script>
+// Theme: press L (outside text fields) to switch light/dark. Same stored choice as the other pages.
+const THEME_KEY = "maskountability-theme";
+function currentTheme() {
+  const set = document.documentElement.getAttribute("data-theme");
+  if (set) return set;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function applyTheme(t) { document.documentElement.setAttribute("data-theme", t); }
+try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") applyTheme(saved); } catch (e) {}
+document.addEventListener("keydown", e => {
+  // e.key can be missing (Chrome autofill sends keydown events without one)
+  if (String(e.key || "").toLowerCase() !== "l" || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target && e.target.tagName) || "";
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(tag) || (e.target && e.target.isContentEditable)) return;
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (err) {}
+});
+</script>
+</body>
+</html>

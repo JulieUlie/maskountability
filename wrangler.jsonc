@@ -1,0 +1,18 @@
+﻿{
+  "name": "maskountability",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "maskountability-submissions",
+      "database_id": "6e0f6b7f-d206-466d-9653-f0e21ccfd6fa"
+    }
+  ]
+}

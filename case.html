@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claim record</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #e4e2d9; --fg: #1d1d1b; --muted: #6a6a63; --card: #f2f1ec; --line: #cbc9bf; --accent: #3b4a6b;
+  --ok: #2d6a3e; --ok-bg: #e7f2ea; --no: #9a2b2b; --no-bg: #f6e6e6; --unk: #6b5a14; --unk-bg: #f3efd9;
+  --radius: 12px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+    --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
+  --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+/* Same header on every page: brand left, the three pages right; it wraps under the brand on phones. */
+header.site { border-bottom: 1px solid var(--line); background: var(--card); }
+header.site .inner { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 24px; }
+header.site .brand { font-weight: 700; letter-spacing: .02em; color: var(--fg); text-decoration: none; padding: 6px 0; }
+header.site nav { display: flex; flex-wrap: wrap; gap: 0 18px; }
+header.site nav a { color: var(--accent); font-weight: 600; text-decoration: none; padding: 6px 0; }
+header.site a:hover { text-decoration: underline; }
+header.site nav a[aria-current="page"] { color: var(--fg); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .35em; }
+.back { display: inline-block; margin: 0 0 16px; color: var(--accent); font-weight: 600; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+main { max-width: 760px; margin: 0 auto; padding: 32px 16px 56px; }
+h1 { font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.2; margin: 0 0 6px; }
+h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 32px 0 10px; font-weight: 700; }
+.meta { color: var(--muted); font-size: .92rem; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+.claim-text { font-size: 1.1rem; margin: 0 0 10px; }
+.verdict-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: .9rem; }
+.pill.supported { color: var(--ok); background: var(--ok-bg); }
+.pill.not_supported { color: var(--no); background: var(--no-bg); }
+.pill.insufficient_evidence { color: var(--unk); background: var(--unk-bg); }
+.dir { display: inline-block; font-size: .8rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; }
+.dir.supports_claim { color: var(--ok); background: var(--ok-bg); }
+.dir.contradicts_claim { color: var(--no); background: var(--no-bg); }
+.dir.neutral { color: var(--muted); background: var(--line); }
+ul.evidence { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+ul.evidence li { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+ul.evidence p { margin: 0 0 4px; }
+ul.history { list-style: none; padding: 0; margin: 0; }
+ul.history li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: .9rem; color: var(--muted); }
+pre { white-space: pre-wrap; word-break: break-word; font: .82rem/1.5 ui-monospace, Consolas, monospace; color: var(--muted); margin: 10px 0 0; }
+.error { color: var(--no); }
+a.post { color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="inner">
+    <a class="brand" href="index.html">Maskountability</a>
+    <nav aria-label="Main"><a href="index.html">Published claims</a><a href="submit.html">Send a claim</a><a href="help.html">How to use this site</a></nav>
+  </div>
+</header>
+<main>
+  <a class="back" href="index.html">← All published claims</a>
+  <div id="content"></div>
+</main>
+<script>
+const LABELS = { supported: "Supported", not_supported: "Not supported", insufficient_evidence: "Insufficient evidence" };
+const DIRS = { supports_claim: "Supports the claim", contradicts_claim: "Contradicts the claim", neutral: "Neutral" };
+const PUBLIC_STATUSES = ["published", "corrected"];
+
+function el(tag, props, children) {
+  const node = document.createElement(tag);
+  if (props) Object.assign(node, props);
+  for (const c of children || []) node.append(c);
+  return node;
+}
+
+function section(title, nodes) {
+  return el("section", null, [el("h2", { textContent: title }), ...nodes]);
+}
+
+function render(c) {
+  const root = document.getElementById("content");
+  const typeLabel = c.subject.type.replace(/_/g, " ");
+  const registry = c.subject.registry
+    ? " · Registry " + c.subject.registry.country + " " + c.subject.registry.number + ", retrieved " + c.subject.registry.retrieved
+    : "";
+  root.replaceChildren(
+    el("h1", { textContent: c.subject.name }),
+    el("p", { className: "meta", textContent: typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1) + registry }),
+
+    section("The claim", [el("div", { className: "card" }, [
+      el("p", { className: "claim-text", textContent: c.claim.text }),
+      el("p", { className: "meta" }, [
+        el("a", { className: "post", href: c.claim.source_url, textContent: "Original post", rel: "noopener" }),
+        document.createTextNode(" · made " + c.period.claim_made + " · seen " + c.claim.date_seen)
+      ]),
+      el("pre", { textContent: "Archive: " + c.claim.archived_copy })
+    ])]),
+
+    section("Period covered by the evidence", [el("p", { textContent: c.period.evidence_covers.from + " to " + c.period.evidence_covers.to })]),
+
+    section("Evidence", [el("ul", { className: "evidence" }, c.evidence.map(e => el("li", null, [
+      el("span", { className: "dir " + e.direction, textContent: DIRS[e.direction] }),
+      el("p", { textContent: e.description }),
+      el("p", { className: "meta", textContent: "Method: " + e.method.replace(/_/g, " ") + (e.date ? " · " + e.date : "") }),
+      el("p", { className: "meta", textContent: "Source: " + e.source }),
+      e.notes ? el("p", { className: "meta", textContent: "Limits: " + e.notes }) : null
+    ].filter(Boolean))))]),
+
+    section("Verdict", [el("div", { className: "card" }, [
+      el("div", { className: "verdict-head" }, [
+        el("span", { className: "pill " + c.verdict.result, textContent: LABELS[c.verdict.result] })
+      ]),
+      el("p", { textContent: c.verdict.reasoning }),
+      el("p", { className: "meta", textContent: "Reviewer: " + c.verdict.reviewer + " · decided " + c.verdict.decided })
+    ])]),
+
+    section("History", [el("ul", { className: "history" }, c.log.map(l => el("li", { textContent: l.at + " · " + l.change })))])
+  );
+  document.title = c.subject.name + " · Claim record";
+}
+
+async function load() {
+  const id = new URLSearchParams(location.search).get("id");
+  const root = document.getElementById("content");
+  if (!id || !/^[a-z0-9-]+$/.test(id)) {
+    root.replaceChildren(el("p", { className: "error", textContent: "Case not found." }));
+    return;
+  }
+  try {
+    const c = await fetch("cases/" + id + ".json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    if (!PUBLIC_STATUSES.includes(c.status)) throw new Error("not public");
+    render(c);
+  } catch (e) {
+    root.replaceChildren(el("p", { className: "error", textContent: "Case not found or not yet published." }));
+  }
+}
+
+// Theme: press L (outside text fields) to switch light/dark. Choice is stored per browser; storage may be unavailable.
+const THEME_KEY = "maskountability-theme";
+function currentTheme() {
+  const set = document.documentElement.getAttribute("data-theme");
+  if (set) return set;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function applyTheme(t) { document.documentElement.setAttribute("data-theme", t); }
+try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") applyTheme(saved); } catch (e) {}
+document.addEventListener("keydown", e => {
+  // e.key can be missing (Chrome autofill sends keydown events without one)
+  if (String(e.key || "").toLowerCase() !== "l" || e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = (e.target && e.target.tagName) || "";
+  if (["INPUT", "TEXTAREA", "SELECT"].includes(tag) || (e.target && e.target.isContentEditable)) return;
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  applyTheme(next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (err) {}
+});
+
+load();
+</script>
+</body>
+</html>
