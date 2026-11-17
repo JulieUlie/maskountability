@@ -235,9 +235,7 @@ test.describe('Theme and accessibility', () => {
 
   for (const path of ['/', '/case.html?id=northwind-belgium', '/submit.html', '/help.html']) {
     test(`${path} has no detectable WCAG violations`, async ({ page }) => {
-      // Known finding (17 Nov 2026): the grey secondary text (#6a6a63 on #e4e2d9) has a contrast of
-      // 4.19:1, under the 4.5:1 of WCAG AA (intro, footer, meta lines). Remove test.fail once fixed.
-      test.fail(path === '/' || path.startsWith('/case'), 'grey text contrast 4.19:1, needs 4.5:1');
+      // Regression test: the grey text was #6a6a63 (4.19:1) until 17 Nov 2026, now #5f5f58 like help.html.
       await withCases(page);
       await page.goto(path);
       await page.waitForLoadState('networkidle');
