@@ -25,7 +25,7 @@ Playwright tests in TypeScript: `npm install`, then `npm test`. Playwright wipes
 - `tests/api/`: the submit endpoint. What is stored (status "new", trimmed, control characters stripped, long fields cut), the 422 rules, the honeypot (looks accepted, stores nothing), malformed requests (405, 415, 400, 413), and that private files (`schema.sql`, `src/`, the tests) are never served.
 - `tests/ui/`: the register with fictional cases (search, verdict filter, drafts never shown, text never run as HTML), a case page, the submit form (success, server reasons, offline), the theme key, and axe scans of every page.
 
-49 tests. Known finding kept visible as `test.fail`: the grey secondary text has a contrast of 4.19:1, under the 4.5:1 of WCAG AA.
+49 tests. They found that the grey secondary text on the home and case pages had a contrast of 4.19:1, under the 4.5:1 of WCAG AA; fixed in v4, and the axe scans now guard it.
 
 ## Deployment
 
