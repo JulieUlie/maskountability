@@ -3,21 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How to use this site</title>
+<title>How to use this site · Maskountability</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
 :root {
+  color-scheme: light;
   --bg: #e4e2d9; --fg: #1d1d1b; --muted: #5f5f58; --card: #f2f1ec; --line: #cbc9bf; --accent: #3b4a6b;
   --ok: #2d6a3e; --ok-bg: #e7f2ea; --no: #9a2b2b; --no-bg: #f6e6e6; --unk: #6b5a14; --unk-bg: #f3efd9;
   --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
     --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19; --shadow: none;
   }
 }
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
   --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19; --shadow: none;
 }
@@ -73,6 +76,10 @@ kbd { font: 600 .9rem ui-monospace, Consolas, monospace; background: var(--card)
 a.inline { color: var(--accent); }
 footer { max-width: 960px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: .9rem; }
 </style>
+<script>
+// Apply a saved theme before the first paint, so a stored choice never flashes the other theme first.
+try { const t = localStorage.getItem("maskountability-theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
 </head>
 <body>
 <header class="site">
@@ -175,7 +182,7 @@ footer { max-width: 960px; margin: 0 auto; padding: 0 16px 32px; color: var(--mu
     </details>
     <details>
       <summary>Is my data stored?</summary>
-      <p>The public site doesn't collect personal data. Nothing is submitted through this page.</p>
+      <p>Reading the site doesn't collect personal data. If you <a class="inline" href="submit.html">send a claim</a>, what you type, including an optional contact, is stored privately for review. It is never published automatically.</p>
     </details>
   </div>
 </main>
@@ -191,7 +198,6 @@ function currentTheme() {
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 function applyTheme(t) { document.documentElement.setAttribute("data-theme", t); }
-try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") applyTheme(saved); } catch (e) {}
 document.addEventListener("keydown", e => {
   // e.key can be missing (Chrome autofill sends keydown events without one)
   if (String(e.key || "").toLowerCase() !== "l" || e.ctrlKey || e.metaKey || e.altKey) return;

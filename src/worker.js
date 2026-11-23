@@ -63,10 +63,12 @@ async function handleSubmit(request, env) {
   const evidence = clean(data.evidence, 2000);
   const contact = clean(data.contact, 200);
 
-  if (company.length < 2) return json({ ok: false, error: "Enter the company name." }, 422);
-  if (claim.length < 10) return json({ ok: false, error: "Describe the public claim in at least 10 characters." }, 422);
-  if (!validUrl(sourceUrl)) return json({ ok: false, error: "The link to the post must start with http:// or https://." }, 422);
-  if (data.consent !== true) return json({ ok: false, error: "Please confirm the consent statement." }, 422);
+  // "field" names the form field at fault, so the form can mark it and move focus there.
+  const refuse = (field, error) => json({ ok: false, error, field }, 422);
+  if (company.length < 2) return refuse("company", "Enter the company name.");
+  if (claim.length < 10) return refuse("claim", "Describe the public claim in at least 10 characters.");
+  if (!validUrl(sourceUrl)) return refuse("source_url", "The link to the post must start with http:// or https://.");
+  if (data.consent !== true) return refuse("consent", "Please confirm the consent statement.");
 
   const id = crypto.randomUUID();
   await env.DB.prepare(

@@ -50,22 +50,23 @@ test.describe('A valid submission', () => {
 });
 
 test.describe('Refused submissions (422), nothing stored', () => {
-  const cases: [string, Record<string, unknown>, string][] = [
-    ['a company name of 1 character', { company: 'X' }, 'Enter the company name.'],
-    ['a claim under 10 characters', { claim: 'Too short' }, 'Describe the public claim in at least 10 characters.'],
-    ['a link that is not http(s)', { source_url: 'javascript:alert(1)' }, 'The link to the post must start with http:// or https://.'],
-    ['a link that is not a URL', { source_url: 'www.example.com' }, 'The link to the post must start with http:// or https://.'],
-    ['no consent', { consent: false }, 'Please confirm the consent statement.'],
-    ['consent as the text "true"', { consent: 'true' }, 'Please confirm the consent statement.'],
+  // Since v5 the answer also names the refused field, so the form can mark it and move focus there.
+  const cases: [string, Record<string, unknown>, string, string][] = [
+    ['a company name of 1 character', { company: 'X' }, 'Enter the company name.', 'company'],
+    ['a claim under 10 characters', { claim: 'Too short' }, 'Describe the public claim in at least 10 characters.', 'claim'],
+    ['a link that is not http(s)', { source_url: 'javascript:alert(1)' }, 'The link to the post must start with http:// or https://.', 'source_url'],
+    ['a link that is not a URL', { source_url: 'www.example.com' }, 'The link to the post must start with http:// or https://.', 'source_url'],
+    ['no consent', { consent: false }, 'Please confirm the consent statement.', 'consent'],
+    ['consent as the text "true"', { consent: 'true' }, 'Please confirm the consent statement.', 'consent'],
   ];
-  for (const [title, override, error] of cases) {
+  for (const [title, override, error, field] of cases) {
     test(`for ${title}`, async ({ request }) => {
       const sent = aSubmission(override);
 
       const res = await submit(request, sent);
 
       expect(res.status()).toBe(422);
-      expect(await res.json()).toEqual({ ok: false, error });
+      expect(await res.json()).toEqual({ ok: false, error, field });
       if (typeof sent.company === 'string' && sent.company.length > 2) {
         expect(rowsForCompany(sent.company as string)).toEqual([]);
       }

@@ -3,26 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Claim record</title>
+<title>Claim record · Maskountability</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
 :root {
+  color-scheme: light;
   --bg: #e4e2d9; --fg: #1d1d1b; --muted: #5f5f58; --card: #f2f1ec; --line: #cbc9bf; --accent: #3b4a6b;
   --ok: #2d6a3e; --ok-bg: #e7f2ea; --no: #9a2b2b; --no-bg: #f6e6e6; --unk: #6b5a14; --unk-bg: #f3efd9;
   --radius: 12px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
     --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19;
   }
 }
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --bg: #262624; --fg: #ecebe6; --muted: #a3a29a; --card: #33332f; --line: #4d4d47; --accent: #9fb0d6;
   --ok: #86cc96; --ok-bg: #1f2e23; --no: #e59494; --no-bg: #322222; --unk: #dcc87a; --unk-bg: #2f2b19;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; overflow-wrap: anywhere; }
 /* Same header on every page: brand left, the three pages right; it wraps under the brand on phones. */
 header.site { border-bottom: 1px solid var(--line); background: var(--card); }
 header.site .inner { max-width: 760px; margin: 0 auto; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 24px; }
@@ -56,7 +59,12 @@ ul.history li { padding: 6px 0; border-bottom: 1px solid var(--line); font-size:
 pre { white-space: pre-wrap; word-break: break-word; font: .82rem/1.5 ui-monospace, Consolas, monospace; color: var(--muted); margin: 10px 0 0; }
 .error { color: var(--no); }
 a.post { color: var(--accent); }
+footer { max-width: 760px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: .85rem; }
 </style>
+<script>
+// Apply a saved theme before the first paint, so a stored choice never flashes the other theme first.
+try { const t = localStorage.getItem("maskountability-theme"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
 </head>
 <body>
 <header class="site">
@@ -69,6 +77,7 @@ a.post { color: var(--accent); }
   <a class="back" href="index.html">← All published claims</a>
   <div id="content"></div>
 </main>
+<footer>Records are versioned. Corrections and withdrawals are shown in each record's history.</footer>
 <script>
 const LABELS = { supported: "Supported", not_supported: "Not supported", insufficient_evidence: "Insufficient evidence" };
 const DIRS = { supports_claim: "Supports the claim", contradicts_claim: "Contradicts the claim", neutral: "Neutral" };
@@ -79,6 +88,11 @@ function el(tag, props, children) {
   if (props) Object.assign(node, props);
   for (const c of children || []) node.append(c);
   return node;
+}
+
+// Only real web links become clickable; anything else (a javascript: URL, a typo) is shown as plain text.
+function webUrl(value) {
+  try { const u = new URL(value); return u.protocol === "https:" || u.protocol === "http:" ? u.href : ""; } catch (e) { return ""; }
 }
 
 function section(title, nodes) {
@@ -98,7 +112,9 @@ function render(c) {
     section("The claim", [el("div", { className: "card" }, [
       el("p", { className: "claim-text", textContent: c.claim.text }),
       el("p", { className: "meta" }, [
-        el("a", { className: "post", href: c.claim.source_url, textContent: "Original post", rel: "noopener" }),
+        webUrl(c.claim.source_url)
+          ? el("a", { className: "post", href: webUrl(c.claim.source_url), textContent: "Original post", rel: "noopener" })
+          : document.createTextNode("Original post not linked"),
         document.createTextNode(" · made " + c.period.claim_made + " · seen " + c.claim.date_seen)
       ]),
       el("pre", { textContent: "Archive: " + c.claim.archived_copy })
@@ -106,8 +122,8 @@ function render(c) {
 
     section("Period covered by the evidence", [el("p", { textContent: c.period.evidence_covers.from + " to " + c.period.evidence_covers.to })]),
 
-    section("Evidence", [el("ul", { className: "evidence" }, c.evidence.map(e => el("li", null, [
-      el("span", { className: "dir " + e.direction, textContent: DIRS[e.direction] }),
+    section("Evidence", [el("ul", { className: "evidence" }, (c.evidence || []).map(e => el("li", null, [
+      el("span", { className: "dir " + e.direction, textContent: DIRS[e.direction] || e.direction }),
       el("p", { textContent: e.description }),
       el("p", { className: "meta", textContent: "Method: " + e.method.replace(/_/g, " ") + (e.date ? " · " + e.date : "") }),
       el("p", { className: "meta", textContent: "Source: " + e.source }),
@@ -116,13 +132,13 @@ function render(c) {
 
     section("Verdict", [el("div", { className: "card" }, [
       el("div", { className: "verdict-head" }, [
-        el("span", { className: "pill " + c.verdict.result, textContent: LABELS[c.verdict.result] })
+        el("span", { className: "pill " + c.verdict.result, textContent: LABELS[c.verdict.result] || c.verdict.result })
       ]),
       el("p", { textContent: c.verdict.reasoning }),
       el("p", { className: "meta", textContent: "Reviewer: " + c.verdict.reviewer + " · decided " + c.verdict.decided })
     ])]),
 
-    section("History", [el("ul", { className: "history" }, c.log.map(l => el("li", { textContent: l.at + " · " + l.change })))])
+    section("History", [el("ul", { className: "history" }, (c.log || []).map(l => el("li", { textContent: l.at + " · " + l.change })))])
   );
   document.title = c.subject.name + " · Claim record";
 }
@@ -132,6 +148,7 @@ async function load() {
   const root = document.getElementById("content");
   if (!id || !/^[a-z0-9-]+$/.test(id)) {
     root.replaceChildren(el("p", { className: "error", textContent: "Case not found." }));
+    document.title = "Case not found · Maskountability";
     return;
   }
   try {
@@ -140,6 +157,7 @@ async function load() {
     render(c);
   } catch (e) {
     root.replaceChildren(el("p", { className: "error", textContent: "Case not found or not yet published." }));
+    document.title = "Case not found · Maskountability";
   }
 }
 
@@ -151,7 +169,6 @@ function currentTheme() {
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 function applyTheme(t) { document.documentElement.setAttribute("data-theme", t); }
-try { const saved = localStorage.getItem(THEME_KEY); if (saved === "light" || saved === "dark") applyTheme(saved); } catch (e) {}
 document.addEventListener("keydown", e => {
   // e.key can be missing (Chrome autofill sends keydown events without one)
   if (String(e.key || "").toLowerCase() !== "l" || e.ctrlKey || e.metaKey || e.altKey) return;

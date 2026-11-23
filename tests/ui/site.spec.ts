@@ -87,6 +87,24 @@ test.describe('The register (index)', () => {
     await expect(page.getByText('Could not load the case list.')).toBeVisible();
   });
 
+  test('only the count is announced while typing, not the whole list (v5)', async ({ page }) => {
+    await withCases(page);
+    await page.goto('/');
+
+    await expect(page.locator('#count')).toHaveAttribute('aria-live', 'polite');
+    await expect(page.locator('#list')).not.toHaveAttribute('aria-live', /.*/);
+  });
+
+  test('cards do not move on hover when reduced motion is asked for (v5)', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await withCases(page);
+    await page.goto('/');
+
+    const card = page.locator('#list article').first();
+    await card.hover();
+    await expect(card).toHaveCSS('transform', 'none');
+  });
+
   test('company names are shown as text, never run as HTML', async ({ page }) => {
     let alerted = false;
     page.on('dialog', async (d) => { alerted = true; await d.dismiss(); });
@@ -116,6 +134,23 @@ test.describe('A case page', () => {
     await expect(page.getByText('Registry BE 0123.456.789, retrieved 2026-11-01')).toBeVisible();
   });
 
+  test('a source that is not a web link is shown as text, never as a clickable link (v5)', async ({ page }) => {
+    await withCases(page, [aCase('bad-link', { claim: { ...aCase('x').claim, source_url: 'javascript:alert(1)' } })]);
+    await page.goto('/case.html?id=bad-link');
+
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Original post' })).toHaveCount(0);
+    await expect(page.getByText('Original post not linked')).toBeVisible();
+  });
+
+  test('a record without evidence or history still shows its verdict (v5)', async ({ page }) => {
+    await withCases(page, [aCase('bare', { evidence: undefined, log: undefined })]);
+    await page.goto('/case.html?id=bare');
+
+    await expect(page.locator('.pill')).toHaveText('Not supported');
+    await expect(page.locator('.evidence li')).toHaveCount(0);
+  });
+
   for (const [title, query, message] of [
     ['an unknown case', '?id=does-not-exist', 'Case not found or not yet published.'],
     ['a draft that is not public yet', '?id=draft-case', 'Case not found or not yet published.'],
@@ -127,6 +162,7 @@ test.describe('A case page', () => {
       await page.goto(`/case.html${query}`);
 
       await expect(page.locator('#content .error')).toHaveText(message);
+      await expect(page).toHaveTitle('Case not found · Maskountability');
     });
   }
 });
@@ -174,6 +210,24 @@ test.describe('Sending a claim', () => {
     await expect(f.claim).toHaveValue('Too short'); // nothing typed is lost
   });
 
+  test('marks the refused field and moves focus to it, until it is changed (v5)', async ({ page }) => {
+    await page.goto('/submit.html');
+    const f = form(page);
+
+    await f.company.fill(company());
+    await f.claim.fill('Too short');
+    await f.consent.check();
+    await f.send.click();
+
+    await expect(f.claim).toBeFocused();
+    await expect(f.claim).toHaveAttribute('aria-invalid', 'true');
+    await expect(f.claim).toHaveAccessibleDescription('Describe the public claim in at least 10 characters.');
+    await expect(f.company).not.toHaveAttribute('aria-invalid', /.*/);
+
+    await f.claim.pressSequentially(' at all');
+    await expect(f.claim).not.toHaveAttribute('aria-invalid', /.*/);
+  });
+
   test('asks for consent before sending', async ({ page }) => {
     await page.goto('/submit.html');
     const f = form(page);
@@ -183,6 +237,7 @@ test.describe('Sending a claim', () => {
     await f.send.click();
 
     await expect(f.status).toHaveText('Please confirm the consent statement.');
+    await expect(f.consent).toBeFocused();
   });
 
   test('explains when the server cannot be reached', async ({ page }) => {
@@ -212,6 +267,16 @@ test.describe('Sending a claim', () => {
   });
 });
 
+test.describe('Help page', () => {
+  test('says honestly what is stored when a claim is sent (v5)', async ({ page }) => {
+    await page.goto('/help.html');
+
+    await page.getByText('Is my data stored?').click();
+    await expect(page.getByText(/what you type, including an optional contact, is stored privately for review/)).toBeVisible();
+    await expect(page.getByText('Nothing is submitted through this page.')).toHaveCount(0);
+  });
+});
+
 test.describe('Theme and accessibility', () => {
   test('L switches light and dark, and the choice is remembered on other pages', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });
@@ -222,6 +287,22 @@ test.describe('Theme and accessibility', () => {
 
     await page.goto('/submit.html');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  });
+
+  test('form controls follow the theme, and a saved theme is applied in the page head (v5)', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto('/submit.html');
+    await expect(page.locator('html')).toHaveCSS('color-scheme', 'light');
+
+    await page.keyboard.press('l');
+    await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
+
+    // The stored choice is set by a script in <head>, before the body is drawn, so it never flashes light first.
+    for (const path of ['/', '/case.html', '/submit.html', '/help.html']) {
+      const html = await (await page.request.get(path)).text();
+      const head = html.slice(0, html.indexOf('</head>'));
+      expect(head, path).toContain('localStorage.getItem("maskountability-theme")');
+    }
   });
 
   test('L typed in a text field does not switch the theme', async ({ page }) => {
@@ -236,6 +317,19 @@ test.describe('Theme and accessibility', () => {
   for (const path of ['/', '/case.html?id=northwind-belgium', '/submit.html', '/help.html']) {
     test(`${path} has no detectable WCAG violations`, async ({ page }) => {
       // Regression test: the grey text was #6a6a63 (4.19:1) until 17 Nov 2026, now #5f5f58 like help.html.
+      await withCases(page);
+      await page.goto(path);
+      await page.waitForLoadState('networkidle');
+
+      const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+
+      expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}× ${v.help}`)).toEqual([]);
+    });
+  }
+
+  for (const path of ['/', '/case.html?id=northwind-belgium', '/submit.html', '/help.html']) {
+    test(`${path} has no detectable WCAG violations in dark mode (v5)`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: 'dark' });
       await withCases(page);
       await page.goto(path);
       await page.waitForLoadState('networkidle');
